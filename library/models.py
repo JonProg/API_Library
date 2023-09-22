@@ -38,11 +38,11 @@ class Category(models.Model):
     def __str__(self) -> str:
         return self.name
 
-class Books(models.Model):
+class Book(models.Model):
     id_book = models.AutoField(primary_key=True)
     title = models.CharField(max_length=255)
     author = models.CharField(max_length=255)
-    release_yesar = models.IntegerField()
+    release_year = models.IntegerField()
 
     state = models.ForeignKey(Category, on_delete=models.SET_NULL,
     blank=False, null=True)
@@ -54,4 +54,7 @@ class Books(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     tags = models.ManyToManyField(Tag, blank=False, default='')
+
+    def __str__(self) -> str:
+        return self.title
 
