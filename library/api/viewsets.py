@@ -6,9 +6,9 @@ class BooksViewset(viewsets.ModelViewSet):
     serializer_class = serializers.BookSerializer
     
     def get_queryset(self):
-        category_id = self.request.query_params.get('category_id')
-        if category_id:
-            return models.Book.objects.filter(category_id=category_id)
+        category_slug = self.request.query_params.get('category')
+        if category_slug:
+            return models.Book.objects.filter(category_slug=category_slug)
         else:
             return models.Book.objects.all()
 
