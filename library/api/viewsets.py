@@ -8,15 +8,24 @@ class BooksViewset(viewsets.ModelViewSet):
     serializer_class = serializers.BookSerializer
     
     def get_queryset(self):
-        queryset = models.Book.objects.all()
+        queryset = models.Book.objects.all().order_by('-id')
 
         publishing_company = self.request.query_params.get('company')
         category = self.request.query_params.get('category')
         author = self.request.query_params.get('author')
         title = self.request.query_params.get('title')
-
+        
         if category:
             queryset = queryset.filter(category__slug=category)
+
+        elif author:
+            queryset = queryset.filter(author__icontains=author)
+
+        elif title:
+            queryset = queryset.filter(title__icontains=title)
+
+        elif publishing_company:
+            queryset = queryset.filter(publishing_company__icontains=publishing_company)
         
         return queryset
 
