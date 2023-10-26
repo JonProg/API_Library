@@ -1,18 +1,25 @@
 from rest_framework import viewsets
 from .serializers import BookSerializer
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
 from rest_framework import status
 from library import models
-# Desabilitar middleware de paginação
-from rest_framework.pagination import PageNumberPagination
-PageNumberPagination.page_size = None
 
+class IsOwnerOrReadOnly(BasePermission):
+
+  def has_object_permission(self, request, view):
+    if request.method in SAFE_METHODS:
+      return True
+
+    return request.user.is_staff
 
 class BooksViewset(viewsets.ModelViewSet):
     serializer_class = BookSerializer
+    permission_classes = [IsAuthenticated,]
 
     def get_queryset(self):
         return models.Book.objects.all()
+        
 
     def list(self, request):
         queryset = self.get_queryset()
