@@ -7,3 +7,9 @@ class BookSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Book
         fields = '__all__'
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'

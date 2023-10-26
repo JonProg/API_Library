@@ -1,5 +1,8 @@
 from rest_framework import viewsets
-from .serializers import BookSerializer
+from rest_framework.views import APIView
+from .serializers import BookSerializer, UserSerializer
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
 from rest_framework import status
@@ -15,12 +18,11 @@ class IsOwnerOrReadOnly(BasePermission):
 
 class BooksViewset(viewsets.ModelViewSet):
     serializer_class = BookSerializer
-    permission_classes = [IsAuthenticated,]
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly,]
 
     def get_queryset(self):
         return models.Book.objects.all()
         
-
     def list(self, request):
         queryset = self.get_queryset()
 
@@ -47,6 +49,37 @@ class BooksViewset(viewsets.ModelViewSet):
         
         serializer = BookSerializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class UserRegisterView(APIView):
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data['username']
+            password = serializer.validated_data['password']
+            try:
+                user = User.objects.create_user(username=username, password=password)
+                return Response({'message': 'User created successfully.'}, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UserLoginView(APIView):
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data['username']
+            password = serializer.validated_data['password']
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return Response({'message': 'Login successful.'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Invalid username or password.'}, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     
     
 
