@@ -15,13 +15,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from api import routes
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
-from rest_framework import permissions
+from rest_framework import permissions, routers
+from library.api import viewsets
+
+
+route = routers.DefaultRouter()
+route.register(r'books',viewsets.BooksViewset, basename='Books')
 
 
 schema_view = get_schema_view(
@@ -38,7 +42,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('', include(routes)),
+    path('', include(route.urls)),
     path('token/',TokenObtainPairView.as_view()),
     path('token/refresh/',TokenRefreshView.as_view()),
     path('admin/', admin.site.urls),
