@@ -4,21 +4,25 @@ from .serializers import BookSerializer, UserSerializer
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
 from rest_framework import status
 from library import models
 
-class IsOwnerOrReadOnly(BasePermission):
+#IsAuthenticated
 
-  def has_object_permission(self, request, view):
-    if request.method in SAFE_METHODS:
-      return True
+class IsAdminOrReadOnly(BasePermission):
 
-    return request.user.is_staff
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
+
+        return request.user.is_superuser
+
 
 class BooksViewset(viewsets.ModelViewSet):
     serializer_class = BookSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly,]
+    permission_classes = [IsAdminOrReadOnly,]
 
     def get_queryset(self):
         return models.Book.objects.all()
@@ -67,18 +71,17 @@ class UserRegisterView(APIView):
 
 class UserLoginView(APIView):
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            username = serializer.validated_data['username']
-            password = serializer.validated_data['password']
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return Response({'message': 'Login successful.'}, status=status.HTTP_200_OK)
-            else:
-                return Response({'error': 'Invalid username or password.'}, status=status.HTTP_401_UNAUTHORIZED)
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            refresh_token = RefreshToken.for_user(user)
+            refresh_token.blacklist()
+            login(request, user)
+            return Response({'message': 'Login successful.'}, status=status.HTTP_200_OK)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Invalid username or password.'}, status=status.HTTP_401_UNAUTHORIZED)
+       
 
     
     
