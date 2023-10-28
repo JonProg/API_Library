@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
 from rest_framework import status
 from library import models
@@ -22,7 +24,7 @@ class IsAdminOrReadOnly(BasePermission):
 
 class BooksViewset(viewsets.ModelViewSet):
     serializer_class = BookSerializer
-    permission_classes = [IsAdminOrReadOnly,]
+    permission_classes = [IsAdminOrReadOnly,IsAuthenticated]
 
     def get_queryset(self):
         return models.Book.objects.all()
@@ -69,18 +71,19 @@ class UserRegisterView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class UserLoginView(APIView):
-    def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        user = authenticate(username=username, password=password)
-        if user is not None:
-            refresh_token = RefreshToken.for_user(user)
-            refresh_token.blacklist()
-            login(request, user)
-            return Response({'message': 'Login successful.'}, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': 'Invalid username or password.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+class UserLoginView(TokenObtainPairView):
+    serializer_class = TokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.user
+        login(request, user)
+        response.data['message'] = 'Login successful.'
+        return response
+        
        
 
     
