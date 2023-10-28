@@ -12,6 +12,6 @@ urlpatterns = [
     path('', include(route.urls)),
 
     #User
-    path('register/', UserRegisterView.as_view(), name='user-registration'),
-    path('login/', UserLoginView.as_view(), name='user-login'),
+    path('api/register/', UserRegisterView.as_view(), name='user-registration'),
+    path('api/login/', UserLoginView.as_view(), name='user-login'),
 ]
