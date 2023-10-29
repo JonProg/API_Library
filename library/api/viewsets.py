@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from .serializers import BookSerializer, UserSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
 from rest_framework import status
@@ -14,11 +14,12 @@ user_auth = None
 class GetCurrentUserToken(BasePermission):
     def has_permission(self, request, view):
         token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
-        token_user = models.Tokens.objects.get(owner=request.user)
-        if token in [token_user.token, token_user.token_refresh]:
-            return True
-
-        return False
+        try:
+            token_user = models.Tokens.objects.get(owner=request.user)
+            if token in [token_user.token, token_user.token_refresh]:
+                return True
+        except:
+            return False
 
 class IsAdminOrReadOnly(BasePermission):
 
