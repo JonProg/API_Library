@@ -3,14 +3,22 @@ from rest_framework.views import APIView
 from .serializers import BookSerializer, UserSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
-from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework import status
 from library import models
 
+user_auth = None
 
+class GetCurrentUserToken(BasePermission):
+    def has_permission(self, request, view):
+        token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
+        token_user = models.Tokens.objects.get(owner=request.user)
+        if token in [token_user.token, token_user.token_refresh]:
+            return True
+
+        return False
 
 class IsAdminOrReadOnly(BasePermission):
 
@@ -23,11 +31,11 @@ class IsAdminOrReadOnly(BasePermission):
 
 class BooksViewset(viewsets.ModelViewSet):
     serializer_class = BookSerializer
-    permission_classes = [IsAdminOrReadOnly,]
+    permission_classes = [IsAdminOrReadOnly, IsAuthenticated, GetCurrentUserToken,]
 
     def get_queryset(self):
         return models.Book.objects.all()
-        
+          
     def list(self, request):
         queryset = self.get_queryset()
 
@@ -72,16 +80,14 @@ class UserRegisterView(APIView):
 
 class UserLoginView(APIView):
     def post(self, request):
+        if request.user:
+            models.Tokens.objects.filter(owner=request.user).delete()
         username = request.data.get('username')
         password = request.data.get('password')
-        email = request.data.get('email')
-        user = authenticate(username=username, password=password, email=email)
-
-        token = request.META.get('HTTP_AUTHORIZATION')
-        if token:
-            print(token.split(' ')[1])
+        user = authenticate(username=username, password=password)
 
         if user is not None:
+             
             login(request, user)
             refresh = RefreshToken.for_user(user)
             token = {
@@ -90,14 +96,10 @@ class UserLoginView(APIView):
                 'user_id': user.id,
                 'message': 'Login successful.'
             }
-
-            tokens = models.Tokens.objects.filter(owner=user)
-            if tokens:
-                tokens.token = str(refresh.access_token)
-                tokens.token_refresh = str(refresh)
-                tokens.save()
-            else:
-                models.Tokens.objects.create(token=str(refresh.access_token), token_refresh=str(refresh))
+            tokens, created = models.Tokens.objects.get_or_create(owner=user)
+            tokens.token = token['access']
+            tokens.token_refresh = token['refresh']
+            tokens.save()
 
             return Response(token, status=status.HTTP_200_OK)
         else:
