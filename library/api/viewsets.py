@@ -13,11 +13,9 @@ user_auth = None
 
 class GetCurrentUserToken(BasePermission):
     def has_permission(self, request, view):
-        token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
         try:
-            token_user = models.Tokens.objects.get(owner=request.user)
-            if token in [token_user.token, token_user.token_refresh]:
-                return True
+            models.Tokens.objects.get(owner=request.user)
+            return True
         except:
             return False
 
@@ -72,7 +70,7 @@ class UserRegisterView(APIView):
             username = serializer.validated_data['username']
             password = serializer.validated_data['password']
             try:
-                user = User.objects.create_user(username=username, password=password)
+                User.objects.create_user(username=username, password=password)
                 return Response({'message': 'User created successfully.'}, status=status.HTTP_201_CREATED)
             except Exception as e:
                 return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -81,7 +79,7 @@ class UserRegisterView(APIView):
 
 class UserLoginView(APIView):
     def post(self, request):
-        if request.user:
+        if request.user.is_authenticated: 
             models.Tokens.objects.filter(owner=request.user).delete()
         username = request.data.get('username')
         password = request.data.get('password')
