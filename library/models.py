@@ -5,9 +5,9 @@ from django.contrib.auth.models import User
 class Tokens(models.Model):
     token = models.CharField(max_length=255, blank=True, null=True)
     token_refresh = models.CharField(max_length=255, blank=True, null=True)
-    owner = owner = models.ForeignKey(
+    owner = models.ForeignKey(
         User,
-        on_delete= models.SET_NULL,
+        on_delete= models.CASCADE,
         blank=True, null= True
     )
 

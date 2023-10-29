@@ -84,13 +84,20 @@ class UserLoginView(APIView):
         if user is not None:
             login(request, user)
             refresh = RefreshToken.for_user(user)
-
             token = {
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
                 'user_id': user.id,
                 'message': 'Login successful.'
             }
+
+            tokens = models.Tokens.objects.filter(owner=user)
+            if tokens:
+                tokens.token = str(refresh.access_token)
+                tokens.token_refresh = str(refresh)
+                tokens.save()
+            else:
+                models.Tokens.objects.create(token=str(refresh.access_token), token_refresh=str(refresh))
 
             return Response(token, status=status.HTTP_200_OK)
         else:
