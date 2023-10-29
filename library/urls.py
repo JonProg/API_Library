@@ -6,7 +6,7 @@ from library.api import viewsets
 
 
 route = routers.DefaultRouter()
-route.register(r'books',viewsets.BooksViewset, basename='Books')
+route.register(r'api/books',viewsets.BooksViewset, basename='Books')
 
 urlpatterns = [
     path('', include(route.urls)),

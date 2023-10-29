@@ -2,13 +2,15 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 from .serializers import BookSerializer, UserSerializer
 from django.contrib.auth.models import User
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate, login
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
+from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework import status
 from library import models
 
-#IsAuthenticated
+
 
 class IsAdminOrReadOnly(BasePermission):
 
@@ -72,10 +74,25 @@ class UserLoginView(APIView):
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
-        user = authenticate(username=username, password=password)
+        email = request.data.get('email')
+        user = authenticate(username=username, password=password, email=email)
+
+        token = request.META.get('HTTP_AUTHORIZATION')
+        if token:
+            print(token.split(' ')[1])
+
         if user is not None:
             login(request, user)
-            return Response({'message': 'Login successful.'}, status=status.HTTP_200_OK)
+            refresh = RefreshToken.for_user(user)
+
+            token = {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'user_id': user.id,
+                'message': 'Login successful.'
+            }
+
+            return Response(token, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid username or password.'}, status=status.HTTP_401_UNAUTHORIZED)
        
