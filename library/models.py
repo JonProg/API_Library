@@ -37,8 +37,7 @@ class Book(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     lent_book = models.BooleanField(blank=True, null= True)
-    refund_book = models.BooleanField(blank=True, null= True)
-    id_borrowed = models.ForeignKey(
+    borrowed = models.ForeignKey(
         User,
         on_delete= models.SET_NULL,
         blank=True, null= True

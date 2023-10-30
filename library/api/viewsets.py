@@ -9,8 +9,6 @@ from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_MET
 from rest_framework import status
 from library import models
 
-user_auth = None
-
 class GetCurrentUserToken(BasePermission):
     def has_permission(self, request, view):
         try:
@@ -77,6 +75,7 @@ class UserRegisterView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class UserLoginView(APIView):
     def post(self, request):
         if request.user.is_authenticated: 
@@ -103,10 +102,48 @@ class UserLoginView(APIView):
             return Response(token, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid username or password.'}, status=status.HTTP_401_UNAUTHORIZED)
-       
 
-    
-    
+
+class BorrowedBook(APIView):
+    permission_classes = [IsAuthenticated, GetCurrentUserToken,]
+
+    def get(self, request, book_id):
+        try:
+            book = models.Book.objects.get(id = book_id)
+        except models.Book.DoesNotExist:
+            return Response({"message": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if book.lent_book:
+            return Response({"message": "Book is already on loan"}, status=status.HTTP_400_BAD_REQUEST)
+
+        book.lent_book = True
+        book.borrowed = request.user
+        book.save()
+
+        return Response({"message": "Successfully borrowed book"}, status=status.HTTP_200_OK)
+
+
+class ReturnBook(APIView):
+    permission_classes = [IsAuthenticated, GetCurrentUserToken,]
+
+    def get(self, request, book_id):
+        try:
+            book = models.Book.objects.get(id = book_id)
+        except models.Book.DoesNotExist:
+            return Response({"message": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if not book.lent_book:
+            return Response({"message": "Book is not on loan"}, status=status.HTTP_400_BAD_REQUEST)
+
+        book.lent_book = False
+        book.borrowed = None
+        book.save()
+
+        return Response({"message": "Book returned successfully"}, status=status.HTTP_200_OK)
+
+
+class UserBooksView(APIView):
+    pass
 
     
 
