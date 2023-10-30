@@ -23,7 +23,6 @@ class Category(models.Model):
         return self.name
 
 class Book(models.Model):
-    id_book = models.AutoField(primary_key=True)
     title = models.CharField(max_length=255)
     author = models.CharField(max_length=255)
     release_year = models.IntegerField()
@@ -36,6 +35,14 @@ class Book(models.Model):
 
     create_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    lent_book = models.BooleanField(blank=True, null= True)
+    refund_book = models.BooleanField(blank=True, null= True)
+    id_borrowed = models.ForeignKey(
+        User,
+        on_delete= models.SET_NULL,
+        blank=True, null= True
+    )
 
     def __str__(self) -> str:
         return self.title
