@@ -143,7 +143,15 @@ class ReturnBook(APIView):
 
 
 class UserBooksView(APIView):
-    pass
+    permission_classes = [IsAuthenticated, GetCurrentUserToken,]
+
+    def get(self, request):
+        books_borrowed = models.Book.objects.filter(borrowed = request.user, lent_book = True)
+
+        # Serializa os livros emprestados para retornar como resposta
+        serializer = BookSerializer(books_borrowed, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     
 
