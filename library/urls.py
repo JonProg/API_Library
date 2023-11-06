@@ -10,8 +10,8 @@ route.register(r'api/books',viewsets.BooksViewset, basename='Books')
 urlpatterns = [
     #Book
     path('', include(route.urls)),
-    path('api/book/borrowed/<id:book_id>', viewsets.BorrowedBook.as_view(), name='book-borrowed'),
-    path('api/book/refund/<id:book_id>', viewsets.ReturnBook.as_view(), name='book-return'),
+    path('api/book/borrowed/<int:book_id>', viewsets.BorrowedBook.as_view(), name='book-borrowed'),
+    path('api/book/refund/<int:book_id>', viewsets.ReturnBook.as_view(), name='book-return'),
 
     #User
     path('api/user/register/', viewsets.UserRegisterView.as_view(), name='user-registration'),
