@@ -104,6 +104,9 @@ class UserLoginView(APIView):
             return Response({'error': 'Invalid username or password.'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
+class UserView(APIView):
+    pass
+
 class BorrowedBook(APIView):
     permission_classes = [IsAuthenticated, GetCurrentUserToken,]
 
