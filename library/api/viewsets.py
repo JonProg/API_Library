@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from .serializers import BookSerializer, UserSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
 from rest_framework import status
@@ -64,16 +64,9 @@ class BooksViewset(viewsets.ModelViewSet):
 class UserRegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            username = serializer.validated_data['username']
-            password = serializer.validated_data['password']
-            try:
-                User.objects.create_user(username=username, password=password)
-                return Response({'message': 'User created successfully.'}, status=status.HTTP_201_CREATED)
-            except Exception as e:
-                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 
 class UserLoginView(APIView):
@@ -82,7 +75,8 @@ class UserLoginView(APIView):
             models.Tokens.objects.filter(owner=request.user).delete()
         username = request.data.get('username')
         password = request.data.get('password')
-        user = authenticate(username=username, password=password)
+        email = request.data.get('email')
+        user = authenticate(username=username, password=password, email=email)
 
         if user is not None:
              
@@ -101,11 +95,44 @@ class UserLoginView(APIView):
 
             return Response(token, status=status.HTTP_200_OK)
         else:
-            return Response({'error': 'Invalid username or password.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Invalid username,password or email.'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class UserView(APIView):
-    pass
+    
+    def get(self, request):
+        if request.user.is_authenticated:
+            data = {
+                'username':request.user.username,
+                'email':request.user.email
+            }
+            return Response(data, status=status.HTTP_200_OK)
+
+        return Response({'error': 'No authenticated user.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def put(self,request):
+        if request.user.is_authenticated:
+            models.Tokens.objects.filter(owner=request.user).delete()
+            user = User.objects.get(pk=request.user.id)
+            username = request.data.get('username')
+            email = request.data.get('email')
+
+            email_existing = User.objects.get(email=email)
+
+            if email_existing:
+                return Response({'error': 'Invalid email.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+            user.username = username
+            user.email = email
+            user.save()
+        return Response({'error': 'No authenticated user.'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    def delete(self, request):
+        if request.user.is_authenticated: 
+            models.Tokens.objects.filter(owner=request.user).delete()
+            User.objects.filter(pk=request.user.id).delete()
+        return Response({'error': 'No authenticated user.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
 
 class BorrowedBook(APIView):
     permission_classes = [IsAuthenticated, GetCurrentUserToken,]
@@ -155,6 +182,7 @@ class UserBooksView(APIView):
         serializer = BookSerializer(books_borrowed, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
 
     
 

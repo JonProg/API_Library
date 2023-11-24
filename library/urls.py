@@ -16,6 +16,6 @@ urlpatterns = [
     #User
     path('api/user/', viewsets.UserView.as_view(), name='user'),
     path('api/user/register/', viewsets.UserRegisterView.as_view(), name='user-registration'),
-    path('api/user/login/', viewsets.UserLoginView.as_view(), name='user-login'),
+    path('api/user/login/', viewsets.UserLoginView.as_view(), name='user-login'), #só pode ver o usuario atual,deletar,atualizar
     path('api/user/books/', viewsets.UserBooksView.as_view(), name='user-books'),
 ]
