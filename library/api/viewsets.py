@@ -10,6 +10,7 @@ from rest_framework import status
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from library import models
+from .docs import messages
 
 class GetCurrentUserToken(BasePermission):
     def has_permission(self, request, view):
@@ -80,19 +81,8 @@ class UserLoginView(APIView):
                 'email': openapi.Schema(type=openapi.TYPE_STRING),
             }
         ),
-        responses={
-            200: openapi.Response(
-                description='Success',
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        'message': openapi.Schema(type=openapi.TYPE_STRING)
-                    }
-                )
-            )
-        }
+        responses= messages.login_res
     )
-
     def post(self, request):
         if request.user.is_authenticated: 
             models.Tokens.objects.filter(owner=request.user).delete()
@@ -197,6 +187,9 @@ class ReturnBook(APIView):
 class UserBooksView(APIView):
     permission_classes = [IsAuthenticated, GetCurrentUserToken,]
 
+    @swagger_auto_schema(
+        responses= messages.user_books
+    )
     def get(self, request):
         books_borrowed = models.Book.objects.filter(borrowed = request.user, lent_book = True)
 
