@@ -73,13 +73,25 @@ class UserRegisterView(APIView):
 
 class UserLoginView(APIView):
     @swagger_auto_schema(request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={
-            'username': openapi.Schema(type=openapi.TYPE_STRING),
-            'password': openapi.Schema(type=openapi.TYPE_STRING),
-            'email': openapi.Schema(type=openapi.TYPE_STRING),
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'username': openapi.Schema(type=openapi.TYPE_STRING),
+                'password': openapi.Schema(type=openapi.TYPE_STRING),
+                'email': openapi.Schema(type=openapi.TYPE_STRING),
+            }
+        ),
+        responses={
+            200: openapi.Response(
+                description='Success',
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING)
+                    }
+                )
+            )
         }
-    ))
+    )
 
     def post(self, request):
         if request.user.is_authenticated: 
@@ -96,7 +108,6 @@ class UserLoginView(APIView):
             token = {
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
-                'user_id': user.id,
                 'message': 'Login successful.'
             }
             tokens, created = models.Tokens.objects.get_or_create(owner=user)
