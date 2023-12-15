@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate, login
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
 from rest_framework import status
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from library import models
 
@@ -71,6 +72,15 @@ class UserRegisterView(APIView):
 
 
 class UserLoginView(APIView):
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'username': openapi.Schema(type=openapi.TYPE_STRING),
+            'password': openapi.Schema(type=openapi.TYPE_STRING),
+            'email': openapi.Schema(type=openapi.TYPE_STRING),
+        }
+    ))
+
     def post(self, request):
         if request.user.is_authenticated: 
             models.Tokens.objects.filter(owner=request.user).delete()
