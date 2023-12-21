@@ -25,6 +25,11 @@ msg_userbooks = openapi.Schema(
     "borrowed":openapi.Schema(type=openapi.TYPE_INTEGER, title="Borrowed"),
 })
 
+msg_user = {
+    "username":openapi.Schema(type=openapi.TYPE_STRING, title="username"),
+    "email":openapi.Schema(type=openapi.TYPE_STRING, title="email@gmail.com")
+}
+
 user_books = {
     200: openapi.Response(
         description='Success',
@@ -36,12 +41,23 @@ user_books = {
     )
 }
 
+
 login_res = {
     200: openapi.Response(
         description='Success message',
         schema=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties=msg_login
+        )
+    )
+}
+
+user_res = {
+    200: openapi.Response(
+        description='Success message',
+        schema=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties=msg_user
         )
     )
 }

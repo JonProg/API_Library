@@ -100,7 +100,7 @@ class UserLoginView(APIView):
                 'access': str(refresh.access_token),
                 'message': 'Login successful.'
             }
-            tokens, created = models.Tokens.objects.get_or_create(owner=user)
+            tokens, _ = models.Tokens.objects.get_or_create(owner=user)
             tokens.token = token['access']
             tokens.token_refresh = token['refresh']
             tokens.save()
@@ -111,7 +111,10 @@ class UserLoginView(APIView):
 
 
 class UserView(APIView):
-    
+    @swagger_auto_schema(manual_parameters=[
+    openapi.Parameter('Authorization', in_=openapi.IN_HEADER, type=openapi.TYPE_STRING, 
+    description='Token de autenticação (Bearer token)')
+    ], responses=messages.user_res)
     def get(self, request):
         if request.user.is_authenticated:
             data = {
@@ -138,7 +141,7 @@ class UserView(APIView):
             user.email = email
             user.save()
         return Response({'error': 'No authenticated user.'}, status=status.HTTP_401_UNAUTHORIZED)
-    
+
     def delete(self, request):
         if request.user.is_authenticated: 
             models.Tokens.objects.filter(owner=request.user).delete()
