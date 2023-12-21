@@ -111,42 +111,46 @@ class UserLoginView(APIView):
 
 
 class UserView(APIView):
+    permission_classes = [IsAuthenticated,]
     @swagger_auto_schema(manual_parameters=[
     openapi.Parameter('Authorization', in_=openapi.IN_HEADER, type=openapi.TYPE_STRING, 
     description='Token de autenticação (Bearer token)')
     ], responses=messages.user_res)
     def get(self, request):
-        if request.user.is_authenticated:
-            data = {
-                'username':request.user.username,
-                'email':request.user.email
-            }
-            return Response(data, status=status.HTTP_200_OK)
 
-        return Response({'error': 'No authenticated user.'}, status=status.HTTP_401_UNAUTHORIZED)
+        data = {
+            'username':request.user.username,
+            'email':request.user.email
+        }
+        return Response(data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(manual_parameters=[
+    openapi.Parameter('Authorization', in_=openapi.IN_HEADER, type=openapi.TYPE_STRING, 
+    description='Token de autenticação (Bearer token)')
+    ])
     def put(self,request):
-        if request.user.is_authenticated:
-            models.Tokens.objects.filter(owner=request.user).delete()
-            user = User.objects.get(pk=request.user.id)
-            username = request.data.get('username')
-            email = request.data.get('email')
+        models.Tokens.objects.filter(owner=request.user).delete()
+        user = User.objects.get(pk=request.user.id)
+        username = request.data.get('username')
+        email = request.data.get('email')
 
-            email_existing = User.objects.get(email=email)
+        email_existing = User.objects.get(email=email)
 
-            if email_existing:
-                return Response({'error': 'Invalid email.'}, status=status.HTTP_401_UNAUTHORIZED)
+        if email_existing:
+            return Response({'error': 'Invalid email.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-            user.username = username
-            user.email = email
-            user.save()
-        return Response({'error': 'No authenticated user.'}, status=status.HTTP_401_UNAUTHORIZED)
+        user.username = username
+        user.email = email
+        user.save()
 
+    @swagger_auto_schema(manual_parameters=[
+    openapi.Parameter('Authorization', in_=openapi.IN_HEADER, type=openapi.TYPE_STRING, 
+    description='Token de autenticação (Bearer token)')
+    ])
     def delete(self, request):
-        if request.user.is_authenticated: 
-            models.Tokens.objects.filter(owner=request.user).delete()
-            User.objects.filter(pk=request.user.id).delete()
-        return Response({'error': 'No authenticated user.'}, status=status.HTTP_401_UNAUTHORIZED)
+        models.Tokens.objects.filter(owner=request.user).delete()
+        User.objects.filter(pk=request.user.id).delete()
+        return Response({'message': 'User deleted successfully'}, status=status.HTTP_200_OK)
         
 
 class BorrowedBook(APIView):
