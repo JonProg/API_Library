@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from .serializers import BookSerializer, UserSerializer
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate, login
@@ -78,7 +79,6 @@ class UserLoginView(APIView):
             properties={
                 'username': openapi.Schema(type=openapi.TYPE_STRING),
                 'password': openapi.Schema(type=openapi.TYPE_STRING),
-                'email': openapi.Schema(type=openapi.TYPE_STRING),
             }
         ),
         responses= messages.login_res
@@ -88,11 +88,9 @@ class UserLoginView(APIView):
             models.Tokens.objects.filter(owner=request.user).delete()
         username = request.data.get('username')
         password = request.data.get('password')
-        email = request.data.get('email')
-        user = authenticate(username=username, password=password, email=email)
+        user = User.objects.get(username=username, password=password)
 
         if user is not None:
-             
             login(request, user)
             refresh = RefreshToken.for_user(user)
             token = {
@@ -204,9 +202,3 @@ class UserBooksView(APIView):
         serializer = BookSerializer(books_borrowed, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
-
-    
-
-
-
