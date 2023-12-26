@@ -1,10 +1,9 @@
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from .serializers import BookSerializer, UserSerializer
-from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import login
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
 from rest_framework import status
@@ -66,12 +65,20 @@ class BooksViewset(viewsets.ModelViewSet):
 
 
 class UserRegisterView(APIView):
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'username': openapi.Schema(type=openapi.TYPE_STRING),
+            'password': openapi.Schema(type=openapi.TYPE_STRING),
+            'email': openapi.Schema(type=openapi.TYPE_STRING),
+        }
+        ),
+        responses= messages.register_user
+    )
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data)
-
 
 class UserLoginView(APIView):
     @swagger_auto_schema(request_body=openapi.Schema(

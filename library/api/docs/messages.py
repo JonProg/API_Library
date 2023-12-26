@@ -30,9 +30,13 @@ msg_user = {
     "email":openapi.Schema(type=openapi.TYPE_STRING, title="email@gmail.com")
 }
 
+msg_register = {
+    "message":openapi.Schema(type=openapi.TYPE_STRING,title="Success in registering the user")
+}
+
 user_books = {
     200: openapi.Response(
-        description='Success',
+        description='Success message',
         schema=openapi.Schema(
             title="User Books",
             type=openapi.TYPE_ARRAY,
@@ -58,6 +62,16 @@ user_res = {
         schema=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties=msg_user
+        )
+    )
+}
+
+register_user = {
+    200: openapi.Response(
+        description='Success message',
+        schema=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties=msg_register
         )
     )
 }
