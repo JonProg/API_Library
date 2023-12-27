@@ -10,23 +10,29 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 from datetime import timedelta
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / 'dotenv_files' / '.env', override=True)
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-&p^11$5@hcjidq7a6x-zin)h9ow5i03!qe*!6c9v$oyz51c2c3'
+SECRET_KEY = os.getenv('SECRET_KEY', 'change-me')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(int(os.getenv('DEBUG', 0)))
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    h.strip() for h in os.getenv('ALLOWED_HOSTS', '').split(',')
+    if h.strip()
+]
 
 
 # Application definition
@@ -81,8 +87,12 @@ WSGI_APPLICATION = 'project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': os.getenv('DB_ENGINE', 'change-me'),
+        'NAME': os.getenv('DB_NAME', 'change-me'),
+        'USER': os.getenv('DB_USER', 'change-me'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'change-me'),
+        'HOST': os.getenv('DB_HOST', 'change-me'),
+        'PORT': os.getenv('DB_PORT','change-me'),
     }
 }
 
