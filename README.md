@@ -4,7 +4,6 @@
 <br>
 <h2 align="center">API Biblioteca | DRF</h2>
 
-#
 <div align="center">
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/JonProg/API_Library)
@@ -17,7 +16,7 @@
 [![apiy.gif](https://i.postimg.cc/0QF6K4j1/apiy.gif)](https://postimg.cc/Vr9s3DXK)
 
 ## Baixar projeto e instalar dependências:
-#
+
 ```bash
 $git clone git@github.com:JonProg/API_Library.git
 
@@ -27,7 +26,7 @@ $pip install -r requirements.txt
 ```
 
 ## Depois de modificar ás variáveis de ambiente:
-#
+
 ~~~~bash
 $python manage.py migrate
 
