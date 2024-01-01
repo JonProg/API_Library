@@ -7,7 +7,7 @@
 <div align="center">
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/JonProg/API_Library)
-![languages-top](https://img.shields.io/github/languages/top/JonProg/API_Library)
+![languages-top](https://img.shields.io/github/languages/top/JonProg/API_Library?color=yellow)
 ![last-commit](https://img.shields.io/github/last-commit/JonProg/API_Library)
 ![GitHub License](https://img.shields.io/github/license/JonProg/API_Library)
 
