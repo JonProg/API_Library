@@ -126,6 +126,11 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
 
+SECURE_COOKIES = True  
+
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

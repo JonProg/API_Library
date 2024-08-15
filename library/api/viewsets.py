@@ -11,6 +11,53 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from library import models
 from .docs import messages
+from django.conf import settings
+from django.utils import timezone
+import datetime
+
+def set_jwt_cookie(response, token, refresh_token):
+    """Define cookies for JWT tokens."""
+    expire = timezone.now() + datetime.timedelta(days=1)  # Set cookie expiration
+    response.set_cookie(
+        key='access',
+        value=token,
+        expires=expire,
+        httponly=True,
+        secure=settings.SECURE_COOKIES,
+        samesite='Lax'
+    )
+    response.set_cookie(
+        key='refresh',
+        value=refresh_token,
+        expires=expire,
+        httponly=True,
+        secure=settings.SECURE_COOKIES,
+        samesite='Lax'
+    )
+    return response
+
+class TokenObtainPairView(APIView):
+    def post(self, request):
+        user = request.user
+        refresh = RefreshToken.for_user(user)
+        response = Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
+        response = set_jwt_cookie(response, str(refresh.access_token), str(refresh))
+        return response
+
+class TokenRefreshView(APIView):
+    def post(self, request):
+        refresh_token = request.COOKIES.get('refresh')
+        if not refresh_token:
+            return Response({'error': 'No refresh token'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        try:
+            refresh = RefreshToken(refresh_token)
+            new_access_token = str(refresh.access_token)
+            response = Response({'access': new_access_token}, status=status.HTTP_200_OK)
+            response = set_jwt_cookie(response, new_access_token, refresh_token)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
 class GetCurrentUserToken(BasePermission):
     def has_permission(self, request, view):
@@ -77,8 +124,10 @@ class UserRegisterView(APIView):
     )
     def post(self, request):
         serializer = UserSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'Success': 'Success in registering the user'}, status=status.HTTP_200_OK)
+
 
 class UserLoginView(APIView):
     @swagger_auto_schema(request_body=openapi.Schema(

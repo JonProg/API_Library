@@ -17,7 +17,6 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework_simplejwt.views import TokenRefreshView
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
@@ -38,7 +37,6 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('', include('library.urls')),
-    path('api/token/refresh/',TokenRefreshView.as_view()),
     path('admin/', admin.site.urls),
     
     # swagger
