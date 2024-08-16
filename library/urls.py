@@ -20,6 +20,5 @@ urlpatterns = [
     path('api/user/books/', viewsets.UserBooksView.as_view(), name='user-books'),
 
     #JWT
-    path('api/token/', viewsets.TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', viewsets.TokenRefreshView.as_view(),name='token_refresh')
 ]

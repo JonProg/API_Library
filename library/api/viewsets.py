@@ -1,11 +1,11 @@
 from rest_framework import viewsets
 from rest_framework.views import APIView
-from .serializers import BookSerializer, UserSerializer
+from .serializers import BookSerializer, UserSerializer, PutSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import status
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -59,26 +59,10 @@ class TokenRefreshView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
-class GetCurrentUserToken(BasePermission):
-    def has_permission(self, request, view):
-        try:
-            models.Tokens.objects.get(owner=request.user)
-            return True
-        except:
-            return False
-
-class IsAdminOrReadOnly(BasePermission):
-
-    def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            return True
-
-        return request.user.is_superuser
-
 
 class BooksViewset(viewsets.ModelViewSet):
     serializer_class = BookSerializer
-    permission_classes = [IsAdminOrReadOnly, IsAuthenticated, GetCurrentUserToken,]
+    permission_classes = [IsAdminUser, IsAuthenticated]
 
     def get_queryset(self):
         return models.Book.objects.all()
@@ -140,11 +124,9 @@ class UserLoginView(APIView):
         responses= messages.login_res
     )
     def post(self, request):
-        if request.user.is_authenticated: 
-            models.Tokens.objects.filter(owner=request.user).delete()
         username = request.data.get('username')
         password = request.data.get('password')
-        user = User.objects.get(username=username, password=password)
+        user = authenticate(request, username=username, password=password)
 
         if user is not None:
             login(request, user)
@@ -154,11 +136,6 @@ class UserLoginView(APIView):
                 'access': str(refresh.access_token),
                 'message': 'Login successful.'
             }
-            tokens, _ = models.Tokens.objects.get_or_create(owner=user)
-            tokens.token = token['access']
-            tokens.token_refresh = token['refresh']
-            tokens.save()
-
             return Response(token, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid username,password or email.'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -166,10 +143,12 @@ class UserLoginView(APIView):
 
 class UserView(APIView):
     permission_classes = [IsAuthenticated,]
+
     @swagger_auto_schema(manual_parameters=[
     openapi.Parameter('Authorization', in_=openapi.IN_HEADER, type=openapi.TYPE_STRING, 
     description='Token de autenticação (Bearer token)')
     ], responses=messages.user_res)
+
     def get(self, request):
 
         data = {
@@ -182,33 +161,30 @@ class UserView(APIView):
     openapi.Parameter('Authorization', in_=openapi.IN_HEADER, type=openapi.TYPE_STRING, 
     description='Token de autenticação (Bearer token)')
     ])
+
     def put(self,request):
-        models.Tokens.objects.filter(owner=request.user).delete()
-        user = User.objects.get(pk=request.user.id)
-        username = request.data.get('username')
-        email = request.data.get('email')
-
-        email_existing = User.objects.get(email=email)
-
-        if email_existing:
-            return Response({'error': 'Invalid email.'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        user.username = username
-        user.email = email
-        user.save()
+        serializer = PutSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            user = User.objects.get(pk=request.user.id)
+            username = request.data.get('username')
+            email = request.data.get('email')
+            user.username = username
+            user.email = email
+            user.save()
+            return Response({'Success': 'Success in update the user'}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(manual_parameters=[
     openapi.Parameter('Authorization', in_=openapi.IN_HEADER, type=openapi.TYPE_STRING, 
     description='Token de autenticação (Bearer token)')
     ])
+
     def delete(self, request):
-        models.Tokens.objects.filter(owner=request.user).delete()
         User.objects.filter(pk=request.user.id).delete()
         return Response({'message': 'User deleted successfully'}, status=status.HTTP_200_OK)
         
 
 class BorrowedBook(APIView):
-    permission_classes = [IsAuthenticated, GetCurrentUserToken,]
+    permission_classes = [IsAuthenticated,]
 
     def get(self, request, book_id):
         try:
@@ -227,7 +203,7 @@ class BorrowedBook(APIView):
 
 
 class ReturnBook(APIView):
-    permission_classes = [IsAuthenticated, GetCurrentUserToken,]
+    permission_classes = [IsAuthenticated, ]
 
     def get(self, request, book_id):
         try:
@@ -246,7 +222,7 @@ class ReturnBook(APIView):
 
 
 class UserBooksView(APIView):
-    permission_classes = [IsAuthenticated, GetCurrentUserToken,]
+    permission_classes = [IsAuthenticated, ]
 
     @swagger_auto_schema(
         responses= messages.user_books
