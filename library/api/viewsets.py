@@ -128,6 +128,8 @@ class UserLoginView(APIView):
         password = request.data.get('password')
         user = authenticate(request, username=username, password=password)
 
+        print(user)
+
         if user is not None:
             login(request, user)
             refresh = RefreshToken.for_user(user)
@@ -138,7 +140,7 @@ class UserLoginView(APIView):
             }
             return Response(token, status=status.HTTP_200_OK)
         else:
-            return Response({'error': 'Invalid username,password or email.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Invalid username or password.'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class UserView(APIView):
