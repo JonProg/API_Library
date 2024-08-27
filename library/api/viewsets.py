@@ -128,8 +128,6 @@ class UserLoginView(APIView):
         password = request.data.get('password')
         user = authenticate(request, username=username, password=password)
 
-        print(user)
-
         if user is not None:
             login(request, user)
             refresh = RefreshToken.for_user(user)
