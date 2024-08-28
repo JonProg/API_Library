@@ -130,6 +130,7 @@ class UserLoginView(APIView):
 
         if user is not None:
             login(request, user)
+            print(user.is_authenticated)
             refresh = RefreshToken.for_user(user)
             token = {
                 'refresh': str(refresh),
