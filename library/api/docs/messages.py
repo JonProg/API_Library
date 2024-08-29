@@ -34,17 +34,6 @@ msg_register = {
     "message":openapi.Schema(type=openapi.TYPE_STRING,title="Success in registering the user")
 }
 
-user_books = {
-    200: openapi.Response(
-        description='Success message',
-        schema=openapi.Schema(
-            title="User Books",
-            type=openapi.TYPE_ARRAY,
-            items=msg_userbooks
-        )
-    )
-}
-
 
 login_res = {
     200: openapi.Response(

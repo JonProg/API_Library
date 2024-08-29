@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import login, authenticate
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework import status
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -114,6 +114,8 @@ class UserRegisterView(APIView):
 
 
 class UserLoginView(APIView):
+    permission_classes = [AllowAny]
+
     @swagger_auto_schema(request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
@@ -129,15 +131,10 @@ class UserLoginView(APIView):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            login(request, user)
-            print(user.is_authenticated)
             refresh = RefreshToken.for_user(user)
-            token = {
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-                'message': 'Login successful.'
-            }
-            return Response(token, status=status.HTTP_200_OK)
+            response = Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
+            response = set_jwt_cookie(response, str(refresh.access_token), str(refresh))
+            return response
         else:
             return Response({'error': 'Invalid username or password.'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -150,11 +147,20 @@ class UserView(APIView):
     description='Token de autenticação (Bearer token)')
     ], responses=messages.user_res)
 
+    #@swagger_auto_schema(
+        #responses= messages.user_books
+    #)
+
     def get(self, request):
+        books_borrowed = models.Book.objects.filter(borrowed = request.user, lent_book = True)
+
+        # Serializa os livros emprestados para retornar como resposta
+        serializer = BookSerializer(books_borrowed, many=True)
 
         data = {
             'username':request.user.username,
-            'email':request.user.email
+            'email':request.user.email,
+            'books_borrowed':serializer.data
         }
         return Response(data, status=status.HTTP_200_OK)
 
@@ -220,18 +226,3 @@ class ReturnBook(APIView):
         book.save()
 
         return Response({"message": "Book returned successfully"}, status=status.HTTP_200_OK)
-
-
-class UserBooksView(APIView):
-    permission_classes = [IsAuthenticated, ]
-
-    @swagger_auto_schema(
-        responses= messages.user_books
-    )
-    def get(self, request):
-        books_borrowed = models.Book.objects.filter(borrowed = request.user, lent_book = True)
-
-        # Serializa os livros emprestados para retornar como resposta
-        serializer = BookSerializer(books_borrowed, many=True)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
