@@ -36,13 +36,6 @@ def set_jwt_cookie(response, token, refresh_token):
     )
     return response
 
-class TokenObtainPairView(APIView):
-    def post(self, request):
-        user = request.user
-        refresh = RefreshToken.for_user(user)
-        response = Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
-        response = set_jwt_cookie(response, str(refresh.access_token), str(refresh))
-        return response
 
 class TokenRefreshView(APIView):
     def post(self, request):
