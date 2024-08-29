@@ -17,11 +17,13 @@ import datetime
 
 def set_jwt_cookie(response, token, refresh_token):
     """Define cookies for JWT tokens."""
-    expire = timezone.now() + datetime.timedelta(days=1)  # Set cookie expiration
+    access_expiration = timezone.now() + datetime.timedelta(minutes=25) 
+    refresh_expiration = timezone.now() + datetime.timedelta(days=7)
+
     response.set_cookie(
         key='access',
         value=token,
-        expires=expire,
+        expires=access_expiration,
         httponly=True,
         secure=settings.SECURE_COOKIES,
         samesite='Lax'
@@ -29,7 +31,7 @@ def set_jwt_cookie(response, token, refresh_token):
     response.set_cookie(
         key='refresh',
         value=refresh_token,
-        expires=expire,
+        expires=refresh_expiration,
         httponly=True,
         secure=settings.SECURE_COOKIES,
         samesite='Lax'
