@@ -10,7 +10,6 @@ class JWTAuthMiddleware(MiddlewareMixin):
             # Adiciona o token ao cabeçalho Authorization
             request.META['HTTP_AUTHORIZATION'] = f'Bearer {token}'
         elif refresh_token:
-            print('teste')
             refresh = RefreshToken(refresh_token)
             new_access_token = str(refresh.access_token)
             request.META['HTTP_AUTHORIZATION'] = f'Bearer {new_access_token}'
