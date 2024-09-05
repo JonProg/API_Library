@@ -39,28 +39,16 @@ def set_jwt_cookie(response, token, refresh_token):
     return response
 
 
-class TokenRefreshView(APIView):
-    def post(self, request):
-        refresh_token = request.COOKIES.get('refresh')
-        if not refresh_token:
-            return Response({'error': 'No refresh token'}, status=status.HTTP_401_UNAUTHORIZED)
-        
-        try:
-            refresh = RefreshToken(refresh_token)
-            new_access_token = str(refresh.access_token)
-            response = Response({'access': new_access_token}, status=status.HTTP_200_OK)
-            response = set_jwt_cookie(response, new_access_token, refresh_token)
-            return response
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
-
-
 class BooksViewset(viewsets.ModelViewSet):
     serializer_class = BookSerializer
-    permission_classes = [IsAdminUser, IsAuthenticated]
 
     def get_queryset(self):
         return models.Book.objects.all()
+    
+    def get_permissions(self):
+        if self.action != 'list': 
+            return[IsAdminUser()]
+        return [IsAuthenticated()]
           
     def list(self, request):
         queryset = self.get_queryset()
@@ -126,6 +114,7 @@ class UserLoginView(APIView):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
+            login(request,user)
             refresh = RefreshToken.for_user(user)
             response = Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
             response = set_jwt_cookie(response, str(refresh.access_token), str(refresh))
@@ -147,7 +136,7 @@ class UserView(APIView):
     #)
 
     def get(self, request):
-        books_borrowed = models.Book.objects.filter(borrowed = request.user, lent_book = True)
+        books_borrowed = models.Book.objects.filter(borrowed = request.user, refund_book = True)
 
         # Serializa os livros emprestados para retornar como resposta
         serializer = BookSerializer(books_borrowed, many=True)
@@ -194,10 +183,10 @@ class BorrowedBook(APIView):
         except models.Book.DoesNotExist:
             return Response({"message": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        if book.lent_book:
+        if book.refund_book:
             return Response({"message": "Book is already on loan"}, status=status.HTTP_400_BAD_REQUEST)
 
-        book.lent_book = True
+        book.refund_book = True
         book.borrowed = request.user
         book.save()
 
@@ -213,10 +202,10 @@ class ReturnBook(APIView):
         except models.Book.DoesNotExist:
             return Response({"message": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        if not book.lent_book:
+        if not book.refund_book:
             return Response({"message": "Book is not on loan"}, status=status.HTTP_400_BAD_REQUEST)
 
-        book.lent_book = False
+        book.refund_book = False
         book.borrowed = None
         book.save()
 

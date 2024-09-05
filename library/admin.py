@@ -13,8 +13,8 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
-    list_display = 'id', 'title', 'lent_book',
-    list_editable = 'lent_book',
+    list_display = 'id', 'title', 'refund_book',
+    list_editable = 'refund_book',
     list_display_links = 'title',
     search_fields = 'id', 'title', 'id_borrowed',
     list_per_page = 10
