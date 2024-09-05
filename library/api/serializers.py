@@ -5,10 +5,12 @@ from library import models
 
 
 class BookSerializer(serializers.ModelSerializer):
+    borrowed = serializers.CharField(source='borrowed.username', default=None)
+    category = serializers.CharField(source='category.name', default=None)
+    
     class Meta:
         model = models.Book
         fields = '__all__'
-
 
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
