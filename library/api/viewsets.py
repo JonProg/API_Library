@@ -131,9 +131,6 @@ class UserView(APIView):
     description='Token de autenticação (Bearer token)')
     ], responses=messages.user_res)
 
-    #@swagger_auto_schema(
-        #responses= messages.user_books
-    #)
 
     def get(self, request):
         books_borrowed = models.Book.objects.filter(borrowed = request.user, refund_book = True)
