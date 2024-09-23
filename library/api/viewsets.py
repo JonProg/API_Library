@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.views import APIView
 from .serializers import BookSerializer, UserSerializer, PutSerializer
 from django.contrib.auth.models import User
@@ -9,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework import status
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from library import models
+from library.models import Book
 from .docs import messages
 from django.conf import settings
 from django.utils import timezone
@@ -41,17 +42,47 @@ def set_jwt_cookie(response, token, refresh_token):
 
 class BooksViewset(viewsets.ModelViewSet):
     serializer_class = BookSerializer
-
-    def get_queryset(self):
-        return models.Book.objects.all()
     
     def get_permissions(self):
         if self.action != 'list': 
             return[IsAdminUser()]
         return [IsAuthenticated()]
+    
+    
+    def borrowed(self, request, book_id=None):
+        try:
+            book = Book.objects.get(id = book_id)
+        except Book.DoesNotExist:
+            return Response({"message": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if book.refund_book:
+            return Response({"message": "Book is already on loan"}, status=status.HTTP_400_BAD_REQUEST)
+
+        book.refund_book = True
+        book.borrowed = request.user
+        book.save()
+
+        return Response({"message": "Successfully borrowed book"}, status=status.HTTP_200_OK)
+    
+    
+    def refund(self, request, book_id=None):
+        try:
+            book = Book.objects.get(id = book_id)
+        except Book.DoesNotExist:
+            return Response({"message": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if not book.refund_book:
+            return Response({"message": "Book is not on loan"}, status=status.HTTP_400_BAD_REQUEST)
+
+        book.refund_book = False
+        book.borrowed = None
+        book.save()
+
+        return Response({"message": "Book returned successfully"}, status=status.HTTP_200_OK)
+    
           
     def list(self, request):
-        queryset = self.get_queryset()
+        queryset = Book.objects.all()
 
         publishing_company = request.query_params.get('company')
         category_id = request.query_params.get('category')
@@ -63,7 +94,7 @@ class BooksViewset(viewsets.ModelViewSet):
                 return Response({
                         "message": f"No books found for category ID: {category_id}"  
                     }, status=status.HTTP_404_NOT_FOUND)
-            queryset = queryset.filter(category__id=category_id)
+            queryset = queryset.filter(category__id=category_id) # or author or || testar
 
         elif author:
             queryset = queryset.filter(author__icontains=author)
@@ -133,7 +164,7 @@ class UserView(APIView):
 
 
     def get(self, request):
-        books_borrowed = models.Book.objects.filter(borrowed = request.user, refund_book = True)
+        books_borrowed = Book.objects.filter(borrowed = request.user, refund_book = True)
 
         # Serializa os livros emprestados para retornar como resposta
         serializer = BookSerializer(books_borrowed, many=True)
@@ -170,40 +201,3 @@ class UserView(APIView):
         User.objects.filter(pk=request.user.id).delete()
         return Response({'message': 'User deleted successfully'}, status=status.HTTP_200_OK)
         
-
-class BorrowedBook(APIView):
-    permission_classes = [IsAuthenticated,]
-
-    def get(self, request, book_id):
-        try:
-            book = models.Book.objects.get(id = book_id)
-        except models.Book.DoesNotExist:
-            return Response({"message": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        if book.refund_book:
-            return Response({"message": "Book is already on loan"}, status=status.HTTP_400_BAD_REQUEST)
-
-        book.refund_book = True
-        book.borrowed = request.user
-        book.save()
-
-        return Response({"message": "Successfully borrowed book"}, status=status.HTTP_200_OK)
-
-
-class ReturnBook(APIView):
-    permission_classes = [IsAuthenticated, ]
-
-    def get(self, request, book_id):
-        try:
-            book = models.Book.objects.get(id = book_id)
-        except models.Book.DoesNotExist:
-            return Response({"message": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        if not book.refund_book:
-            return Response({"message": "Book is not on loan"}, status=status.HTTP_400_BAD_REQUEST)
-
-        book.refund_book = False
-        book.borrowed = None
-        book.save()
-
-        return Response({"message": "Book returned successfully"}, status=status.HTTP_200_OK)
