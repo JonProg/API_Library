@@ -6,34 +6,37 @@
 
 <div align="center">
 
-![GitHub repo size](https://img.shields.io/github/repo-size/JonProg/API_Library)
-![languages-top](https://img.shields.io/github/languages/top/JonProg/API_Library?color=yellow)
-![last-commit](https://img.shields.io/github/last-commit/JonProg/API_Library)
-![GitHub License](https://img.shields.io/github/license/JonProg/API_Library)
+![DjangoREST](https://img.shields.io/badge/DJANGO-REST-ff1709?style=for-the-badge&logo=django&logoColor=white&color=ff1709&labelColor=gray)
+![JWT](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=JSON%20web%20tokens)
+![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
+![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=Swagger&logoColor=white)
+![Insomnia](https://img.shields.io/badge/Insomnia-black?style=for-the-badge&logo=insomnia&logoColor=5849BE)
 
 </div>
 
 [![apiy.gif](https://i.postimg.cc/0QF6K4j1/apiy.gif)](https://postimg.cc/Vr9s3DXK)
 
-## Baixar projeto e instalar dependências:
+## Runing project using docker:
 
 ```bash
 $git clone git@github.com:JonProg/API_Library.git
 
 $cd API_Library
 
-$pip install -r requirements.txt
+$docker compose up -d
+
+$docker compose exec web python manage.py migrate
 ```
 
-## Depois de modificar ás variáveis de ambiente:
+| Route - (api/books/) | Description |
+|---|---|
+| `GET` | Retorna informações de todos livros adicionados no Postgres. |
+| `POST` | Usada para adicionar um livro a base de dados|
+~~~~json
 
-~~~~bash
-$python manage.py migrate
-
-$python manage.py runserver
 ~~~~
 
-#
+
 
 
 
