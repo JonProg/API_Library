@@ -197,7 +197,7 @@ class ReturnBook(APIView):
             return Response({"message": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
 
         if not book.returned_book:
-            return Response({"message": "Book is not on loan"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "The book is on loan"}, status=status.HTTP_400_BAD_REQUEST)
 
         book.returned_book = True
         book.borrowed = None
