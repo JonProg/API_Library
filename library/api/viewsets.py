@@ -15,6 +15,7 @@ from django.conf import settings
 from django.utils import timezone
 import datetime
 
+
 def set_jwt_cookie(response, token, refresh_token):
     """Define cookies for JWT tokens."""
     access_expiration = timezone.now() + datetime.timedelta(minutes=25) 
@@ -53,7 +54,6 @@ class BooksViewset(viewsets.ModelViewSet):
     def list(self, request):
         queryset = self.get_queryset()
 
-        publishing_company = request.query_params.get('company')
         category_id = request.query_params.get('category')
         author = request.query_params.get('author')
         title = request.query_params.get('title')
@@ -65,14 +65,11 @@ class BooksViewset(viewsets.ModelViewSet):
                     }, status=status.HTTP_404_NOT_FOUND)
             queryset = queryset.filter(category__id=category_id)
 
-        elif author:
+        if author:
             queryset = queryset.filter(author__icontains=author)
 
-        elif title:
+        if title:
             queryset = queryset.filter(title__icontains=title)
-
-        elif publishing_company:
-            queryset = queryset.filter(publishing_company__icontains=publishing_company)
         
         serializer = BookSerializer(queryset, many=True)
         return Response(serializer.data)
@@ -133,7 +130,7 @@ class UserView(APIView):
 
 
     def get(self, request):
-        books_borrowed = models.Book.objects.filter(borrowed = request.user, refund_book = True)
+        books_borrowed = models.Book.objects.filter(borrowed = request.user)
 
         # Serializa os livros emprestados para retornar como resposta
         serializer = BookSerializer(books_borrowed, many=True)
@@ -174,16 +171,16 @@ class UserView(APIView):
 class BorrowedBook(APIView):
     permission_classes = [IsAuthenticated,]
 
-    def get(self, request, book_id):
+    def put(self, request, book_id):
         try:
             book = models.Book.objects.get(id = book_id)
         except models.Book.DoesNotExist:
             return Response({"message": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        if book.refund_book:
+        if book.returned_book:
             return Response({"message": "Book is already on loan"}, status=status.HTTP_400_BAD_REQUEST)
 
-        book.refund_book = True
+        book.returned_book = False
         book.borrowed = request.user
         book.save()
 
@@ -193,16 +190,16 @@ class BorrowedBook(APIView):
 class ReturnBook(APIView):
     permission_classes = [IsAuthenticated, ]
 
-    def get(self, request, book_id):
+    def put(self, request, book_id):
         try:
-            book = models.Book.objects.get(id = book_id)
+            book = models.Book.objects.get(borrowed = request.user, id = book_id)
         except models.Book.DoesNotExist:
             return Response({"message": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        if not book.refund_book:
+        if not book.returned_book:
             return Response({"message": "Book is not on loan"}, status=status.HTTP_400_BAD_REQUEST)
 
-        book.refund_book = False
+        book.returned_book = True
         book.borrowed = None
         book.save()
 

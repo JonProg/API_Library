@@ -18,23 +18,21 @@
 
 ## Runing project using docker:
 
-```bash
-$git clone git@github.com:JonProg/API_Library.git
-
-$cd API_Library
-
-$docker compose up -d
-
-$docker compose exec web python manage.py migrate
-```
-
-| Route - (api/books/) | Description |
-|---|---|
-| `GET` | Retorna informações de todos livros adicionados no Postgres. |
-| `POST` | Usada para adicionar um livro a base de dados|
-~~~~json
-
+~~~~python
+#A api será executada na porta 8000 -> http://127.0.0.1:8000
 ~~~~
+
+### Route - (api/books/)
+
+| Method | Description
+|---|---|
+| `GET` - (All Users) | Retorna informações de todos livros adicionados no Postgres e quando a rota é "api/books/{id}" ele retorna o livro com um id específico. |
+| `POST` - (OAI) | Usada para adicionar um livro a base de dados.|
+| `PUT` - (OAI) | Atualiza uma parte dos dados de um livro.|
+| `PATCH` - (OAI) | Atualiza os dados por completo de um livro.|
+| `DELETE` - (OAI) | Exclui o livro da base de dados.|
+
+> OAI = Only Admins with ID
 
 
 

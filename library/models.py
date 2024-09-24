@@ -26,7 +26,7 @@ class Book(models.Model):
     create_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    refund_book = models.BooleanField(blank=True, null= True)
+    returned_book = models.BooleanField(blank=True, null= True)
     borrowed = models.ForeignKey(
         User,
         on_delete= models.SET_NULL,
