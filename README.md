@@ -1,7 +1,7 @@
 <p align="center">
-    <img src="https://i.postimg.cc/3NQ4jQST/api-3d.png" align="center" width=177px ></img>
+    <img src="https://i.postimg.cc/3NQ4jQST/api-3d.png" align="center" width=170px ></img>
 </p>    
-<br>
+
 <h2 align="center">API Biblioteca | DRF</h2>
 
 <div align="center">
@@ -17,12 +17,23 @@
 [![apiy.gif](https://i.postimg.cc/0QF6K4j1/apiy.gif)](https://postimg.cc/Vr9s3DXK)
 
 ## Runing project using docker:
+Modifique o .env antes de rodar a API os dados estaram no docker-compose.yml
+
+~~~~bash
+git clone git@github.com:JonProg/API_Library.git
+cd API_Library
+docker compose up -d --build
+docker compose exec web python manage.py makemigrations
+docker compose exec web python manage.py migrate
+~~~~
 
 ~~~~python
 #A api será executada na porta 8000 -> http://127.0.0.1:8000
 ~~~~
 
-### Route - (api/books/)
+___
+
+### Route - ( port/api/books/ )
 
 | Method | Description
 |---|---|
@@ -34,7 +45,19 @@
 
 > OAI = Only Admins with ID
 
+| Routes for filter books | Description
+|---|---|
+`api/books?title="Python"` | Retorna todos os livros que tem 'python' no title <br>
+`api/books?author = "JonProg"`| Retorna todos os livros onde o nome do author é 'JonProg' <br>
+`api/books?category = "Technology"` | Retorna todos os livros da category 'Technology'
 
+___
+
+### Route ( port/api/user )
+
+### Route ( port/api/book )
+
+### JWT configuration through cookies
 
 
 
