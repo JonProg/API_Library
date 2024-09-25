@@ -1,25 +1,7 @@
-from rest_framework import viewsets
-from rest_framework.views import APIView
-from .serializers import BookSerializer, UserSerializer, PutSerializer
-from django.contrib.auth.models import User
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import login, authenticate
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
-from rest_framework import status
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
-from library import models
-from .docs import messages
-from django.conf import settings
-from django.utils import timezone
-import datetime
-
-
 def set_jwt_cookie(response, token, refresh_token):
     """Define cookies for JWT tokens."""
-    access_expiration = timezone.now() + datetime.timedelta(minutes=25) 
-    refresh_expiration = timezone.now() + datetime.timedelta(days=7)
+    access_expiration = timezone.now() + timedelta(minutes=25) 
+    refresh_expiration = timezone.now() + timedelta(days=7)
 
     response.set_cookie(
         key='access',
@@ -38,41 +20,6 @@ def set_jwt_cookie(response, token, refresh_token):
         samesite='Lax'
     )
     return response
-
-
-class BooksViewset(viewsets.ModelViewSet):
-    serializer_class = BookSerializer
-
-    def get_queryset(self):
-        return models.Book.objects.all()
-    
-    def get_permissions(self):
-        if self.action != 'list': 
-            return[IsAdminUser()]
-        return [IsAuthenticated()]
-          
-    def list(self, request):
-        queryset = self.get_queryset()
-
-        category_id = request.query_params.get('category')
-        author = request.query_params.get('author')
-        title = request.query_params.get('title')
-        
-        if category_id:
-            if not category_id.isdecimal():
-                return Response({
-                        "message": f"No books found for category ID: {category_id}"  
-                    }, status=status.HTTP_404_NOT_FOUND)
-            queryset = queryset.filter(category__id=category_id)
-
-        if author:
-            queryset = queryset.filter(author__icontains=author)
-
-        if title:
-            queryset = queryset.filter(title__icontains=title)
-        
-        serializer = BookSerializer(queryset, many=True)
-        return Response(serializer.data)
 
 
 class UserRegisterView(APIView):
@@ -166,41 +113,3 @@ class UserView(APIView):
     def delete(self, request):
         User.objects.filter(pk=request.user.id).delete()
         return Response({'message': 'User deleted successfully'}, status=status.HTTP_200_OK)
-        
-
-class BorrowedBook(APIView):
-    permission_classes = [IsAuthenticated,]
-
-    def patch(self, request, book_id):
-        try:
-            book = models.Book.objects.get(id = book_id)
-        except models.Book.DoesNotExist:
-            return Response({"message": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        if book.returned_book:
-            return Response({"message": "Book is already on loan"}, status=status.HTTP_400_BAD_REQUEST)
-
-        book.returned_book = False
-        book.borrowed = request.user
-        book.save()
-
-        return Response({"message": "Successfully borrowed book"}, status=status.HTTP_200_OK)
-
-
-class ReturnBook(APIView):
-    permission_classes = [IsAuthenticated, ]
-
-    def patch(self, request, book_id):
-        try:
-            book = models.Book.objects.get(borrowed = request.user, id = book_id)
-        except models.Book.DoesNotExist:
-            return Response({"message": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        if not book.returned_book:
-            return Response({"message": "The book is on loan"}, status=status.HTTP_400_BAD_REQUEST)
-
-        book.returned_book = True
-        book.borrowed = None
-        book.save()
-
-        return Response({"message": "Book returned successfully"}, status=status.HTTP_200_OK)
