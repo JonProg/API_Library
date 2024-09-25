@@ -33,31 +33,31 @@ docker compose exec web python manage.py migrate
 
 ___
 
-### Route - ( port/api/books/ )
+## Endpoints
+#### Books Routes
+- `GET /api/books/`: Lista todos os livros com opções de filtro por category, author e title. <br><br>
 
-| Method | Description
-|---|---|
-| `GET` - (All Users) | Retorna informações de todos livros adicionados no Postgres e quando a rota é "api/books/{id}" ele retorna o livro com um id específico. |
-| `POST` - (OAI) | Usada para adicionar um livro a base de dados.|
-| `PUT` - (OAI) | Atualiza uma parte dos dados de um livro.|
-| `PATCH` - (OAI) | Atualiza os dados por completo de um livro.|
-| `DELETE` - (OAI) | Exclui o livro da base de dados.|
+- `POST /api/books/`: Cria um novo livro (administradores).<br><br>
 
-> OAI = Only Admins with ID
+- `PUT /api/books/<id>/`: Atualiza um livro existente (administradores).<br><br>
 
-| Routes for filter books | Description
-|---|---|
-`api/books?title="Python"` | Retorna todos os livros que tem 'python' no title <br>
-`api/books?author = "JonProg"`| Retorna todos os livros onde o nome do author é 'JonProg' <br>
-`api/books?category = "Technology"` | Retorna todos os livros da category 'Technology'
+- `DELETE /api/books/<id>/`: Remove um livro existente (administradores).<br><br>
 
-___
+- `PATCH /api/books/borrowed/<book_id>/`: Permite que um usuário faça o empréstimo de um livro.<br><br>
 
-### Route ( port/api/user )
+- `PATCH /api/books/refund/<book_id>/`: Permite que um usuário devolva um livro.
 
-### Route ( port/api/book )
+#### User Routes
+- `GET /api/user/`: Retorna os dados do usuário logado, incluindo livros emprestados.<br><br>
+- `PATCH /api/user/`: Atualiza informações do usuário logado (nome de usuário, e-mail).
+- `DELETE /api/user/`: Deleta a conta do usuário logado.
+- `POST /api/user/register/`: Registra um novo usuário.
+- `POST /api/user/login/`: Realiza login com username e password e retorna tokens JWT nos cookies.
+
 
 ### JWT configuration through cookies
+
+[![code-python.png](https://i.postimg.cc/wv5yqNnQ/code-python.png)](https://postimg.cc/qhRMQNJN)
 
 
 

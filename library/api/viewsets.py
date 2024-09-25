@@ -147,7 +147,7 @@ class UserView(APIView):
     description='Token de autenticação (Bearer token)')
     ])
 
-    def put(self,request):
+    def patch(self,request):
         serializer = PutSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             user = User.objects.get(pk=request.user.id)
@@ -171,7 +171,7 @@ class UserView(APIView):
 class BorrowedBook(APIView):
     permission_classes = [IsAuthenticated,]
 
-    def put(self, request, book_id):
+    def patch(self, request, book_id):
         try:
             book = models.Book.objects.get(id = book_id)
         except models.Book.DoesNotExist:
@@ -190,7 +190,7 @@ class BorrowedBook(APIView):
 class ReturnBook(APIView):
     permission_classes = [IsAuthenticated, ]
 
-    def put(self, request, book_id):
+    def patch(self, request, book_id):
         try:
             book = models.Book.objects.get(borrowed = request.user, id = book_id)
         except models.Book.DoesNotExist:
