@@ -31,7 +31,6 @@ docker compose exec web python manage.py migrate
 #A api será executada na porta 8000 -> http://127.0.0.1:8000
 ~~~~
 
-___
 
 ## Endpoints
 #### Books Routes
@@ -47,6 +46,8 @@ ___
 
 - `PATCH /api/books/refund/<book_id>/`: Permite que um usuário devolva um livro.
 
+___
+
 #### User Routes
 - `GET /api/user/`: Retorna os dados do usuário logado, incluindo livros emprestados.<br><br>
 - `PATCH /api/user/`: Atualiza informações do usuário logado (nome de usuário, e-mail).
@@ -54,6 +55,7 @@ ___
 - `POST /api/user/register/`: Registra um novo usuário.
 - `POST /api/user/login/`: Realiza login com username e password e retorna tokens JWT nos cookies.
 
+___
 
 ### JWT configuration through cookies
 
