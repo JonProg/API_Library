@@ -57,7 +57,30 @@ ___
 
 ### JWT configuration through cookies
 
-[![code-python.png](https://i.postimg.cc/wv5yqNnQ/code-python.png)](https://postimg.cc/qhRMQNJN)
+~~~~python
+def set_jwt_cookie(response, token, refresh_token):
+    """Define cookies for JWT tokens."""
+    access_expiration = timezone.now() + datetime.timedelta(minutes=25) 
+    refresh_expiration = timezone.now() + datetime.timedelta(days=7)
+
+    response.set_cookie(
+        key='access',
+        value=token,
+        expires=access_expiration,
+        httponly=True,
+        secure=settings.SECURE_COOKIES,
+        samesite='Lax'
+    )
+    response.set_cookie(
+        key='refresh',
+        value=refresh_token,
+        expires=refresh_expiration,
+        httponly=True,
+        secure=settings.SECURE_COOKIES,
+        samesite='Lax'
+    )
+    return response
+~~~~
 
 
 
