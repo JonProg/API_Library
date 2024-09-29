@@ -1,3 +1,5 @@
+from . import *
+
 def set_jwt_cookie(response, token, refresh_token):
     """Define cookies for JWT tokens."""
     access_expiration = timezone.now() + timedelta(minutes=25) 

@@ -14,5 +14,3 @@ RUN pip install -r requirements.txt
 # Expõe a porta da aplicação Django (padrão 8000)
 EXPOSE 8000
 
-# Comando para iniciar a aplicação
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

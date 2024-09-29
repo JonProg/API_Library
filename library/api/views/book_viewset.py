@@ -1,3 +1,5 @@
+from . import *
+
 class BooksViewset(viewsets.ModelViewSet):
     serializer_class = BookSerializer
 
